@@ -1,8 +1,5 @@
 pandas
+scikit-learn
 
 spacy~=3.7.5
-fr_core_news_sm @https://github.com/explosion/spacy-models/releases/download/fr_core_news_sm-3.7.0/fr_core_news_sm-3.7.0-py3-none-any.whl
-fr_core_news_md @https://github.com/explosion/spacy-models/releases/download/fr_core_news_md-3.7.0/fr_core_news_md-3.7.0-py3-none-any.whl
 fr_core_news_lg @https://github.com/explosion/spacy-models/releases/download/fr_core_news_lg-3.7.0/fr_core_news_lg-3.7.0-py3-none-any.whl
-
-scikit-learn
