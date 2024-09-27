@@ -33,9 +33,11 @@ Author: Marceau Hernandez <git@marceau-h.fr>
 License: AGPL-3.0
 """
 ### Importing libraries
+import gc
 import json
 from pathlib import Path
 
+import numpy as np
 import spacy
 import pandas as pd
 from tqdm.auto import tqdm
@@ -45,6 +47,7 @@ from sklearn.metrics.pairwise import cosine_similarity
 ### Constants (can be overridden by CLI arguments)
 DEFAULT_THRESHOLD = 0.0 # Default threshold for similarity, if the similarity is above this value, the name is considered a match
 DEFAULT_NLP_MODEL = "fr_core_news_lg" # Default Spacy NLP model, the one used for named entity recognition
+TEMP_DIR = Path("tempdir") # Temporary directory to store the tfidf matrix and the similarity matrix
 
 ### Functions definition
 def extract_ners(text: str, nlp: spacy.Language, ner_labels: str = "PER,LOC") -> list[str]:
@@ -146,7 +149,17 @@ def main(
     texts_df["ners"] = texts_df[text_str_col].apply(lambda x: extract_ners(x, nlp, ner_labels))
 
     # Transform the names into vectors using the TfidfVectorizer (from the names DataFrame)
-    names_vectors = tfidf.transform(names_df[names_str_col].tolist())
+    names_vectors = tfidf.transform(names_df[names_str_col])
+
+    names_vectors_shape = names_vectors.shape
+    temp_tfidf_file = TEMP_DIR / "temp_tfidf.npy"
+    fp = np.memmap(temp_tfidf_file, dtype='float32', mode='w+', shape=names_vectors_shape)
+    fp[:] = names_vectors[:]
+    del fp
+    del names_vectors
+    gc.collect()
+
+    names_vectors = np.memmap(temp_tfidf_file, dtype='float32', mode='r', shape=names_vectors_shape)
 
     # Iterate over the texts DataFrame and compare the named entities to the names using cosine similarity
     # If the similarity is above the threshold, add the name to the results
@@ -171,6 +184,16 @@ def main(
             vect = tfidf.transform([ner]) # Transform the named entity into a vector using the TfidfVectorizer
             sims = cosine_similarity(names_vectors, vect) # Compute the cosine similarity between newly transformed vector and the names vectors
 
+            sims_shape = sims.shape
+            temp_sim_file ="temp_sim.npy"
+            fp = np.memmap(temp_sim_file, dtype='float32', mode='w+', shape=sims_shape)
+            fp[:] = sims[:]
+            del fp
+            del sims
+            gc.collect()
+
+            sims = np.memmap(temp_sim_file, dtype='float32', mode='r', shape=sims_shape)
+
             sims_upper_than_tresh = sims > threshold # Check if the similarity is above the threshold
 
             sims_upper_indices = sims_upper_than_tresh.nonzero()[0] # Get the indices of the names with a similarity above the threshold
@@ -193,6 +216,13 @@ def main(
                     "names": sims_upper_in_df[names_str_col].tolist(),
                 }
             )
+
+            del sims
+            del sims_upper_than_tresh
+            del sims_upper_indices
+            del sims_upper_values
+            del sims_upper_in_df
+            gc.collect()
 
         # Add the results to the mega_struct list, for each text
         # The results are saved in a dictionary with the following structure:
