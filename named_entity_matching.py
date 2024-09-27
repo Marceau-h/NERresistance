@@ -154,7 +154,8 @@ def main(
 
     names_vectors_shape = names_vectors.shape
     temp_tfidf_file = TEMP_DIR / "temp_tfidf.npy"
-    fp = np.memmap(temp_tfidf_file, dtype='float32', mode='w+', shape=names_vectors_shape)
+    csr = names_vectors.__class__
+    fp = np.memmap(temp_tfidf_file, dtype=csr, mode='w+', shape=names_vectors_shape)
     fp[:] = names_vectors[:]
     del fp
     del names_vectors
