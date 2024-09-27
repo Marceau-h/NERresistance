@@ -36,8 +36,9 @@ License: AGPL-3.0
 import json
 from pathlib import Path
 
-import pandas as pd
 import spacy
+import pandas as pd
+from tqdm.auto import tqdm
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 
@@ -164,7 +165,7 @@ def main(
     #     }
     # ]
     mega_struct = [] # Initialize the mega_struct list
-    for i, row in texts_df.iterrows(): # Iterate over the rows of the texts DataFrame
+    for i, row in tqdm(texts_df.iterrows(), total=len(texts_df), desc="Processing texts"): # Iterate over the texts DataFrame
         sims_by_ner = [] # Initialize the sims_by_ner list
         for ner in row["ners"]: # Iterate over the named entities found in the text
             vect = tfidf.transform([ner]) # Transform the named entity into a vector using the TfidfVectorizer
