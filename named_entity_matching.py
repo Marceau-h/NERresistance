@@ -48,6 +48,7 @@ from sklearn.metrics.pairwise import cosine_similarity
 DEFAULT_THRESHOLD = 0.0 # Default threshold for similarity, if the similarity is above this value, the name is considered a match
 DEFAULT_NLP_MODEL = "fr_core_news_lg" # Default Spacy NLP model, the one used for named entity recognition
 TEMP_DIR = Path("tempdir") # Temporary directory to store the tfidf matrix and the similarity matrix
+TEMP_DIR.mkdir(exist_ok=True, parents=True) # Make the dir if non-existent
 
 ### Functions definition
 def extract_ners(text: str, nlp: spacy.Language, ner_labels: str = "PER,LOC") -> list[str]:
