@@ -232,7 +232,7 @@ def main(
 
     # Save the results in the output JSON file
     with output.open("w", encoding=encoding) as f:
-        json.dump(mega_struct, f, ensure_ascii=False, indent=4)
+        json.dump(mega_struct, f, ensure_ascii=False)
 
 
 # If the script is used as a CLI
