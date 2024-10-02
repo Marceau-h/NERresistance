@@ -51,7 +51,7 @@ TEMP_DIR = Path("tempdir") # Temporary directory to store the tfidf matrix and t
 TEMP_DIR.mkdir(exist_ok=True, parents=True) # Make the dir if non-existent
 
 ### Functions definition
-def extract_ners(text: str, nlp: spacy.Language, ner_labels: str = "PER,LOC") -> list[str]:
+def extract_ners(text: str, nlp: spacy.Language, ner_labels: str = "PER") -> list[str]:
     """
     Extracts named entities from a text using a Spacy NLP model
     :param text: The text to extract named entities from
@@ -79,7 +79,7 @@ def main(
         ngram_min: int = 2,
         ngram_max: int = 2,
         min_df: int = 2,
-        ner_labels: str = "PER,LOC",
+        ner_labels: str = "PER", # "PER,LOC",
         analyser: str = "char",
         nlp_model: str = DEFAULT_NLP_MODEL,
 ) -> None:
@@ -271,7 +271,7 @@ if __name__ == "__main__":
     parser.add_argument("--ngram_min", type=int, default=2, help="Minimum n-gram size")
     parser.add_argument("--ngram_max", type=int, default=2, help="Maximum n-gram size")
     parser.add_argument("--min_df", type=int, default=2, help="Minimum document frequency")
-    parser.add_argument("--ner_labels", default="PER,LOC", help="Named entity labels to extract")
+    parser.add_argument("--ner_labels", default="PER", help="Named entity labels to extract")
     parser.add_argument("--analyser", default="char", help="Analyser for the TfidfVectorizer")
     parser.add_argument("--nlp_model", default=DEFAULT_NLP_MODEL, help="Spacy NLP model")
 
