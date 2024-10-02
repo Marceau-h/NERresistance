@@ -153,20 +153,6 @@ def main(
     # Transform the names into vectors using the TfidfVectorizer (from the names DataFrame)
     names_vectors = tfidf.transform(names_df[names_str_col])
 
-    # # Save the names vectors in a temporary file to free memory
-    # # We need to remember the shape of the names_vectors array to read it back later
-    # names_vectors_shape = names_vectors.shape
-    # temp_tfidf_file = TEMP_DIR / "temp_tfidf.npy" # Temporary file to store the names vectors
-    # csr = names_vectors.__class__ # Get the class of the names_vectors array to save it in the temporary file
-    # fp = np.memmap(temp_tfidf_file, dtype=csr, mode='w+', shape=names_vectors_shape) # Save the names vectors in the temporary file
-    # fp[:] = names_vectors[:] # Copy the names vectors to the temporary file
-    # del fp # Delete the file pointer to close the file
-    # del names_vectors # Delete the names vectors to free memory
-    # gc.collect() # Run the garbage collector to free memory
-    #
-    # # Read the names vectors back from the temporary file, so not in memory
-    # names_vectors = np.memmap(temp_tfidf_file, dtype='float32', mode='r', shape=names_vectors_shape)
-
     # Iterate over the texts DataFrame and compare the named entities to the names using cosine similarity
     # If the similarity is above the threshold, add the name to the results
     # The results are saved in a list of dictionaries (`mega_struct`) with the following structure:
@@ -191,18 +177,6 @@ def main(
         for ner in row["ners"]: # Iterate over the named entities found in the text
             vect = tfidf.transform([ner]) # Transform the named entity into a vector using the TfidfVectorizer
             sims = cosine_similarity(names_vectors, vect) # Compute the cosine similarity between newly transformed vector and the names vectors
-
-            # Same as above, save the similarity matrix in a temporary file to free memory
-            # We need to remember the shape of the similarity matrix to read it back later api/auth/
-            sims_shape = sims.shape
-            temp_sim_file ="temp_sim.npy"
-            fp = np.memmap(temp_sim_file, dtype='float32', mode='w+', shape=sims_shape)
-            fp[:] = sims[:]
-            del fp
-            del sims
-            gc.collect()
-
-            sims = np.memmap(temp_sim_file, dtype='float32', mode='r', shape=sims_shape)
 
             sims_upper_than_tresh = sims > threshold # Check if the similarity is above the threshold
 
