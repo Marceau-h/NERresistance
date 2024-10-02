@@ -46,7 +46,7 @@ from sklearn.feature_extraction.text import TfidfVectorizer # TfidfVectorizer to
 from sklearn.metrics.pairwise import cosine_similarity # Cosine similarity to compare the named entities to the names
 
 ### Constants (can be overridden by CLI arguments)
-DEFAULT_THRESHOLD = 0.0 # Default threshold for similarity, if the similarity is above this value, the name is considered a match
+DEFAULT_THRESHOLD = 0.4 # Default threshold for similarity, if the similarity is above this value, the name is considered a match
 DEFAULT_NLP_MODEL = "fr_core_news_lg" # Default Spacy NLP model, the one used for named entity recognition
 TEMP_DIR = Path("tempdir") # Temporary directory to store the tfidf matrix and the similarity matrix
 TEMP_DIR.mkdir(exist_ok=True, parents=True) # Make the dir if non-existent
