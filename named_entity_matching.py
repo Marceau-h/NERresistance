@@ -48,6 +48,7 @@ from sklearn.metrics.pairwise import cosine_similarity # Cosine similarity to co
 ### Constants (can be overridden by CLI arguments)
 DEFAULT_THRESHOLD = 0.4 # Default threshold for similarity, if the similarity is above this value, the name is considered a match
 DEFAULT_NLP_MODEL = "fr_core_news_lg" # Default Spacy NLP model, the one used for named entity recognition
+DEFAULT_NER_LABELS = "PER" # "PER,LOC" # Default named entity labels to extract
 TEMP_DIR = Path("tempdir") # Temporary directory to store the tfidf matrix and the similarity matrix
 TEMP_DIR.mkdir(exist_ok=True, parents=True) # Make the dir if non-existent
 
@@ -262,7 +263,7 @@ if __name__ == "__main__":
     parser.add_argument("--ngram_min", type=int, default=2, help="Minimum n-gram size")
     parser.add_argument("--ngram_max", type=int, default=2, help="Maximum n-gram size")
     parser.add_argument("--min_df", type=int, default=2, help="Minimum document frequency")
-    parser.add_argument("--ner_labels", default="PER", help="Named entity labels to extract")
+    parser.add_argument("--ner_labels", default=DEFAULT_NER_LABELS, help="Named entity labels to extract")
     parser.add_argument("--analyser", default="char", help="Analyser for the TfidfVectorizer")
     parser.add_argument("--nlp_model", default=DEFAULT_NLP_MODEL, help="Spacy NLP model")
 
