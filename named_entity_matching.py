@@ -84,6 +84,8 @@ def main(
         ner_labels: str = "PER", # "PER,LOC",
         analyser: str = "char",
         nlp_model: str = DEFAULT_NLP_MODEL,
+        echantillon_texts: int = None,
+        echantillon_names: int = None
 ) -> None:
     """
     Main function to extract named entities from texts and compare them to a list of names
@@ -105,6 +107,8 @@ def main(
     :param ner_labels: Named entity labels to extract (comma-separated list)
     :param analyser: Analyser for the TfidfVectorizer (char by default, can be "word" or "char" or "char_wb" or even a custom analyser)
     :param nlp_model: Spacy NLP model to use for named entity recognition
+    :param echantillon_texts: Number of texts to sample from the input_texts
+    :param echantillon_names: Number of names to sample from the input_names
     :return: None, as the results are saved in the output JSON file
     """
     # The input_names, input_texts and output arguments can be either strings or Path objects
@@ -139,6 +143,18 @@ def main(
             encoding=encoding,
             **({"sep": sep_texts} if sep_texts else {}), # If sep_texts is not empty, use it as the separator for the texts CSV file
         ).fillna("") # Same as above, fill NaN values with an empty string
+
+    if echantillon_texts:
+        assert isinstance(echantillon_texts, int), "echantillon_texts must be an integer"
+        assert echantillon_texts > 0, "echantillon_texts must be greater than 0"
+        assert echantillon_texts <= len(texts_df), "echantillon_texts must be less than or equal to the number of texts"
+        texts_df = texts_df.sample(n=echantillon_texts, random_state=42)
+
+    if echantillon_names:
+        assert isinstance(echantillon_names, int), "echantillon_names must be an integer"
+        assert echantillon_names > 0, "echantillon_names must be greater than 0"
+        assert echantillon_names <= len(names_df), "echantillon_names must be less than or equal to the number of names"
+        names_df = names_df.sample(n=echantillon_names, random_state=42)
 
     # Combine the names and texts columns in a single list to fit the TfidfVectorizer
     docs = names_df[names_str_col].tolist() + texts_df[text_str_col].tolist()
@@ -266,6 +282,8 @@ if __name__ == "__main__":
     parser.add_argument("--ner_labels", default=DEFAULT_NER_LABELS, help="Named entity labels to extract")
     parser.add_argument("--analyser", default="char", help="Analyser for the TfidfVectorizer")
     parser.add_argument("--nlp_model", default=DEFAULT_NLP_MODEL, help="Spacy NLP model")
+    parser.add_argument("--echantillon_texts", type=int, help="For testing purposes, sample n texts")
+    parser.add_argument("--echantillon_names", type=int, help="For testing purposes, sample n names")
 
     # Parse the command-line arguments and store them in the args variable
     args = parser.parse_args()
