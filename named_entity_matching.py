@@ -19,7 +19,8 @@ The script will output a JSON file with the following structure:
                 "sims": [float],
                 "names": [str],
             }
-        ]
+        ],
+        "Empty_NEs": [str],
     }
 ]
 
@@ -152,16 +153,19 @@ def main(
     # Transform the names into vectors using the TfidfVectorizer (from the names DataFrame)
     names_vectors = tfidf.transform(names_df[names_str_col])
 
-    names_vectors_shape = names_vectors.shape
-    temp_tfidf_file = TEMP_DIR / "temp_tfidf.npy"
-    csr = names_vectors.__class__
-    fp = np.memmap(temp_tfidf_file, dtype=csr, mode='w+', shape=names_vectors_shape)
-    fp[:] = names_vectors[:]
-    del fp
-    del names_vectors
-    gc.collect()
-
-    names_vectors = np.memmap(temp_tfidf_file, dtype='float32', mode='r', shape=names_vectors_shape)
+    # # Save the names vectors in a temporary file to free memory
+    # # We need to remember the shape of the names_vectors array to read it back later
+    # names_vectors_shape = names_vectors.shape
+    # temp_tfidf_file = TEMP_DIR / "temp_tfidf.npy" # Temporary file to store the names vectors
+    # csr = names_vectors.__class__ # Get the class of the names_vectors array to save it in the temporary file
+    # fp = np.memmap(temp_tfidf_file, dtype=csr, mode='w+', shape=names_vectors_shape) # Save the names vectors in the temporary file
+    # fp[:] = names_vectors[:] # Copy the names vectors to the temporary file
+    # del fp # Delete the file pointer to close the file
+    # del names_vectors # Delete the names vectors to free memory
+    # gc.collect() # Run the garbage collector to free memory
+    #
+    # # Read the names vectors back from the temporary file, so not in memory
+    # names_vectors = np.memmap(temp_tfidf_file, dtype='float32', mode='r', shape=names_vectors_shape)
 
     # Iterate over the texts DataFrame and compare the named entities to the names using cosine similarity
     # If the similarity is above the threshold, add the name to the results
@@ -176,12 +180,14 @@ def main(
     #                 "sims": [float],
     #                 "names": [str],
     #             }
-    #         ]
+    #         ],
+    #         "Empty_NEs": [str],
     #     }
     # ]
     mega_struct = [] # Initialize the mega_struct list
     for i, row in tqdm(texts_df.iterrows(), total=len(texts_df), desc="Processing texts"): # Iterate over the texts DataFrame
         sims_by_ner = [] # Initialize the sims_by_ner list
+        not_sims_ners = [] # Initialize the not_sims_ners list
         for ner in row["ners"]: # Iterate over the named entities found in the text
             vect = tfidf.transform([ner]) # Transform the named entity into a vector using the TfidfVectorizer
             sims = cosine_similarity(names_vectors, vect) # Compute the cosine similarity between newly transformed vector and the names vectors
@@ -202,22 +208,27 @@ def main(
             sims_upper_values = sims[sims_upper_indices].flatten() # Get the similarity values
             sims_upper_in_df = names_df.iloc[sims_upper_indices] # Get the names DataFrame rows with a similarity above the threshold
 
-            # Add the results to the sims_by_ner list, for each named entity found in the text
-            # The results are saved in a dictionary with the following structure:
-            # {
-            #     "NE": str,
-            #     "id_names": [int],
-            #     "sims": [float],
-            #     "names": [str],
-            # }
-            sims_by_ner.append(
-                {
-                    "NE": ner,
-                    "id_names": sims_upper_in_df[names_id_col].tolist(),
-                    "sims": sims_upper_values.tolist(),
-                    "names": sims_upper_in_df[names_str_col].tolist(),
-                }
-            )
+            # If no names are found with a similarity above the threshold, add the named entity to the not_sims_ners list
+            # making smaller the output JSON file
+            if sims_upper_indices.shape[0] == 0:
+                not_sims_ners.append(ner)
+            else:
+                # Add the results to the sims_by_ner list, for each named entity found in the text
+                # The results are saved in a dictionary with the following structure:
+                # {
+                #     "NE": str,
+                #     "id_names": [int],
+                #     "sims": [float],
+                #     "names": [str],
+                # }
+                sims_by_ner.append(
+                    {
+                        "NE": ner,
+                        "id_names": sims_upper_in_df[names_id_col].tolist(),
+                        "sims": sims_upper_values.tolist(),
+                        "names": sims_upper_in_df[names_str_col].tolist(),
+                    }
+                )
 
             del sims
             del sims_upper_than_tresh
@@ -230,12 +241,14 @@ def main(
         # The results are saved in a dictionary with the following structure:
         # {
         #     "id_text": int,
-        #     "NEs": [sims_by_ner]
+        #     "NEs": [sims_by_ner],
+        #     "Empty_NEs": [not_sims_ners],
         # }
         mega_struct.append(
             {
                 "id_text": row[text_id_col],
                 "NEs": sims_by_ner,
+                "Empty_NEs": not_sims_ners,
             }
         )
 
