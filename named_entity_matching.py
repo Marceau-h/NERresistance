@@ -34,16 +34,16 @@ Author: Marceau Hernandez <git@marceau-h.fr>
 License: AGPL-3.0
 """
 ### Importing libraries
-import gc
-import json
-from pathlib import Path
+import gc # Garbage collector to free memory
+import json # JSON module to save the results in a JSON file
+from pathlib import Path # Path module to handle file paths
 
-import numpy as np
-import spacy
-import pandas as pd
-from tqdm.auto import tqdm
-from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.metrics.pairwise import cosine_similarity
+import numpy as np # Numpy for numerical operations (tresholding, filtering, etc.)
+import spacy # Spacy for named entity recognition
+import pandas as pd # Pandas for data manipulation (opening the csvs)
+from tqdm.auto import tqdm # tqdm for progress bars
+from sklearn.feature_extraction.text import TfidfVectorizer # TfidfVectorizer to transform the names into vectors
+from sklearn.metrics.pairwise import cosine_similarity # Cosine similarity to compare the named entities to the names
 
 ### Constants (can be overridden by CLI arguments)
 DEFAULT_THRESHOLD = 0.0 # Default threshold for similarity, if the similarity is above this value, the name is considered a match
@@ -60,7 +60,7 @@ def extract_ners(text: str, nlp: spacy.Language, ner_labels: str = "PER") -> lis
     :param ner_labels: A comma-separated list of named entity labels to extract (str)
     :return: A list of named entities found in the text that match the specified ner_labels
     """
-    doc = nlp(text)
+    doc = nlp(text) # Process the text with the Spacy NLP model
     return [ent.text for ent in doc.ents if ent.label_ in ner_labels.split(",")]
 
 
@@ -192,6 +192,8 @@ def main(
             vect = tfidf.transform([ner]) # Transform the named entity into a vector using the TfidfVectorizer
             sims = cosine_similarity(names_vectors, vect) # Compute the cosine similarity between newly transformed vector and the names vectors
 
+            # Same as above, save the similarity matrix in a temporary file to free memory
+            # We need to remember the shape of the similarity matrix to read it back later api/auth/
             sims_shape = sims.shape
             temp_sim_file ="temp_sim.npy"
             fp = np.memmap(temp_sim_file, dtype='float32', mode='w+', shape=sims_shape)
@@ -230,12 +232,13 @@ def main(
                     }
                 )
 
+            # Free memory by deleting the temporary variables
             del sims
             del sims_upper_than_tresh
             del sims_upper_indices
             del sims_upper_values
             del sims_upper_in_df
-            gc.collect()
+            gc.collect() # Call the garbage collector to ensure the memory is freed
 
         # Add the results to the mega_struct list, for each text
         # The results are saved in a dictionary with the following structure:
@@ -257,6 +260,7 @@ def main(
         json.dump(mega_struct, f, ensure_ascii=False, indent=4)
 
 
+# If the script is used as a CLI
 if __name__ == "__main__":
     # If used as a cli, import the ArgumentParser class from the argparse module (to parse command-line arguments)
     from argparse import ArgumentParser
