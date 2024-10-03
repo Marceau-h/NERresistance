@@ -28,7 +28,7 @@ Usage:
     python ner_minimal.py input_names.csv input_texts.csv output.json [--threshold 0.0 --text_str_col text \
     --text_id_col id_text --names_str_col name --names_id_col id_name --sep ";" --sep_names ";" --sep_texts ";" \
     --encoding "utf-8" --ngram_min 2 --ngram_max 2 --min_df 2 --ner_labels "PER,LOC" --analyser "char" \
-    --nlp_model "fr_core_news_lg"]
+    --nlp_model "fr_core_news_lg" --echantillon_texts 100 --echantillon_names 100]
 
 Author: Marceau Hernandez <git@marceau-h.fr>
 License: AGPL-3.0
