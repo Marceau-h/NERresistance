@@ -202,6 +202,13 @@ def main(
             sims_upper_values = sims[sims_upper_indices].flatten() # Get the similarity values
             sims_upper_in_df = names_df.iloc[sims_upper_indices] # Get the names DataFrame rows with a similarity above the threshold
 
+            order = sorted(enumerate(sims_upper_values), key=lambda x: x[1], reverse=True)
+            order = [x[0] for x in order]
+
+            sims_upper_indices = sims_upper_indices[order]
+            sims_upper_values = sims_upper_values[order]
+            sims_upper_in_df = sims_upper_in_df.iloc[order]
+
             # If no names are found with a similarity above the threshold, add the named entity to the not_sims_ners list
             # making smaller the output JSON file
             if sims_upper_indices.shape[0] == 0:
