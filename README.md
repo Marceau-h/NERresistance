@@ -70,6 +70,8 @@ The script takes the following arguments:
 - `--ner_labels`: the labels of the named entities to extract
 - `--analyser`: the type of analyser to use for the vectorizer
 - `--nlp_model`: the spaCy model to use
+- `--echantillon_texts`: the number of texts to sample
+- `--echantillon_names`: the number of names to sample
 
 ## Contributing
 If you want to contribute to this project, you can open an issue or a pull request, and I will be happy to discuss it with you. You can also contact me at [git@marceau-h.fr](mailto:git@marceau-h.fr).
